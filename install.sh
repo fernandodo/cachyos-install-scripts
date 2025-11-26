@@ -151,27 +151,49 @@ install_chinese_input() {
         fcitx5-configtool \
         fcitx5-chinese-addons
 
-    # Create fcitx5 environment configuration
-    log_info "Configuring fcitx5 environment variables..."
+    # Configure fcitx5 environment variables (only for X11)
+    # On Wayland (especially KDE Plasma), native input method protocol is used
+    SESSION_TYPE="${XDG_SESSION_TYPE:-x11}"
 
-    # Add to /etc/environment for system-wide settings
-    sudo tee -a /etc/environment > /dev/null <<EOF
+    if [ "$SESSION_TYPE" = "x11" ]; then
+        log_info "Detected X11 session - configuring environment variables..."
 
-# Fcitx5 Input Method
+        # Check if already configured
+        if ! grep -q "GTK_IM_MODULE=fcitx" /etc/environment 2>/dev/null; then
+            sudo tee -a /etc/environment > /dev/null <<EOF
+
+# Fcitx5 Input Method (X11)
 GTK_IM_MODULE=fcitx
 QT_IM_MODULE=fcitx
 XMODIFIERS=@im=fcitx
 SDL_IM_MODULE=fcitx
 GLFW_IM_MODULE=ibus
 EOF
+            log_info "Environment variables configured for X11"
+        else
+            log_info "Environment variables already configured"
+        fi
+    else
+        log_info "Detected Wayland session - using native input method protocol"
+        log_info "No environment variables needed (KDE Plasma handles it automatically)"
+    fi
 
-    # Enable fcitx5 autostart
-    mkdir -p ~/.config/autostart
-    cp /usr/share/applications/org.fcitx.Fcitx5.desktop ~/.config/autostart/ 2>/dev/null || true
+    # On Wayland, fcitx5 should be launched by KWin, not autostart
+    # On X11, enable autostart
+    if [ "$SESSION_TYPE" = "x11" ]; then
+        mkdir -p ~/.config/autostart
+        cp /usr/share/applications/org.fcitx.Fcitx5.desktop ~/.config/autostart/ 2>/dev/null || true
+        log_info "Enabled fcitx5 autostart for X11"
+    else
+        log_info "On Wayland, configure fcitx5 via System Settings → Virtual Keyboard"
+    fi
 
     log_info "Chinese input method installed (fcitx5)"
     log_warn "You need to log out and log back in for input method to work"
-    log_info "After relogin, configure fcitx5 with 'fcitx5-configtool' and add Chinese input"
+    if [ "$SESSION_TYPE" = "wayland" ]; then
+        log_info "After relogin: System Settings → Input Devices → Virtual Keyboard → Select Fcitx 5"
+    fi
+    log_info "Then configure with 'fcitx5-configtool' and add Chinese input"
 }
 
 # Install browsers

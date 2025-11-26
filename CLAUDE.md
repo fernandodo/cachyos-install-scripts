@@ -4,198 +4,127 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a CachyOS (Arch-based Linux) fresh installation automation project. It provides four scripts:
-1. **check-network.sh** - Tests internet connectivity and ranks mirrors for optimal speed
-2. **cleanup.sh** - Removes unwanted packages from the system
-3. **install.sh** - Installs development tools, browsers, Chinese support, and power management
-4. **create-shortcuts.sh** - Creates Chrome app mode shortcuts for AI assistants (ChatGPT, Claude)
+CachyOS (Arch-based Linux) fresh installation automation scripts. Four independent scripts that can be run in sequence or standalone:
+1. **check-network.sh** - Network diagnostics and mirror optimization
+2. **cleanup.sh** - Package removal (rust, go, nodejs, Code-OSS, vanilla kernel)
+3. **install.sh** - Development environment installation (main script)
+4. **create-shortcuts.sh** - Chrome app mode shortcuts for ChatGPT/Claude
 
-## Project Structure
+## Key Directories
 
-- `check-network.sh` - Network check and mirror ranking script
-- `cleanup.sh` - Cleanup script that removes unwanted packages (rust, go, nodejs, Code-OSS, vanilla kernel)
-- `install.sh` - Main installation script that orchestrates all installation tasks
-- `create-shortcuts.sh` - Creates Chrome app mode shortcuts for ChatGPT and Claude
-- `apps/` - Directory containing .desktop shortcut files
-  - `chatgpt.desktop` - ChatGPT desktop entry
-  - `claude.desktop` - Claude desktop entry
-- `README.md` - Comprehensive documentation of all software and usage instructions
-- `CLAUDE.md` - This file, guidance for Claude Code instances
+- `apps/` - .desktop files for AI assistant shortcuts
+- `settings/` - Post-installation configuration documentation (login wallpaper, fcitx5 wayland fix)
 
 ## Running the Scripts
 
-### Recommended Order
+**Recommended sequence:** `./check-network.sh` → `./cleanup.sh` → `./install.sh`
 
-1. **check-network.sh** - Run first to optimize mirrors (recommended if encountering connection issues)
-2. **cleanup.sh** - Run second to remove unwanted packages (optional)
-3. **install.sh** - Run last to install development environment
+**Important:** Never run as root - scripts prompt for sudo when needed.
 
-### Network Check Script
-
-Test connectivity and rank mirrors:
-
-```bash
-./check-network.sh
-```
-
-Run this if you encounter "Connection timed out" errors or slow downloads.
-
-### Cleanup Script
-
-Remove unwanted packages (optional):
-
-```bash
-./cleanup.sh
-```
-
-The cleanup script prompts for confirmation before removing packages.
-
-### Installation Script
-
-Install development environment and tools:
-
-```bash
-./install.sh
-```
-
-**Important:** Do not run scripts as root. They will prompt for sudo when needed.
+Each script is idempotent (safe to run multiple times) and uses `set -e` (exits on first error).
 
 ## Script Architecture
 
+### install.sh - Main Installation Script
+
+**Critical Architecture Pattern:** Two-phase AUR installation to handle yay dependency
+
+**Phase 1 - Official repos only:**
+```
+update_system() → install_dev_tools() → install_languages() →
+install_ides() → install_chinese_fonts() → install_browsers() →
+install_power_management() → install_aur_helper()
+```
+
+**Phase 2 - Retry AUR packages after yay is available:**
+```
+install_vscode_retry() → install_cursor_retry() →
+install_obsidian_retry() → install_chrome_retry() →
+install_aur_power_tools() → install_chinese_input()
+```
+
+**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
+
+**Key Installation Functions:**
+
+- `install_power_management()` - Automatically detects and removes `power-profiles-daemon` (conflicts with TLP), enables TLP and thermald services, masks systemd-rfkill
+- `install_chinese_input()` - Detects session type via `$XDG_SESSION_TYPE`:
+  - **X11**: Adds environment variables to `/etc/environment`, creates autostart file
+  - **Wayland (KDE Plasma)**: Uses native input protocol, no env vars needed, relies on KWin to launch fcitx5
+- `install_aur_helper()` - Clones yay from AUR to `/tmp`, builds with `makepkg -si`
+
 ### check-network.sh
 
-Standalone script for testing network connectivity and optimizing mirror performance.
-
-**Functions:**
-- `check_network()` - Tests internet connectivity, DNS resolution, and mirror accessibility
-- `rank_mirrors()` - Uses `cachyos-rate-mirrors` to test and rank all CachyOS mirrors by speed
-- Backs up current mirrorlist before making changes
-- Refreshes package databases after mirror optimization
-
-**Usage:** Run this script first if experiencing slow downloads or connection timeouts. Takes 1-2 minutes to complete.
+Tests connectivity (ping 8.8.8.8, DNS, CachyOS CDN), then uses `cachyos-rate-mirrors` to benchmark and rank mirrors. Backs up mirrorlist before changes, refreshes package databases after ranking.
 
 ### cleanup.sh
 
-Standalone script for removing unwanted packages. Uses interactive confirmation before removal.
+Interactive removal script. Scans for unwanted packages using `pacman -Qi`, prompts for confirmation, removes with `pacman -Rns` (tries force removal with `-Rdd` if dependencies block).
 
-**Removes:**
-- rust, go (unused programming languages)
-- nodejs, npm, yarn (unused JavaScript tools)
-- code (Code-OSS, replaced by official VSCode)
-- linux (vanilla Arch kernel, only if linux-cachyos exists)
+## Modifying Scripts
 
-### create-shortcuts.sh
+### Adding/removing packages in install.sh
 
-Standalone script for creating Chrome app mode shortcuts for AI assistants.
+Edit the relevant function (e.g., `install_dev_tools()`) and modify the `pacman -S` or `yay -S` command. For AUR packages, ensure they're in a function called after `install_aur_helper()`.
 
-**Functions:**
-- `check_chrome()` - Verifies Google Chrome is installed
-- `download_icons()` - Downloads official ChatGPT and Claude icons to `~/.local/share/icons/`
-- `install_shortcuts()` - Copies .desktop files from `apps/` to `~/.local/share/applications/`
-- `update_desktop_database()` - Refreshes system application menu
+### Adding packages to cleanup.sh
 
-**Desktop files (in apps/ folder):**
-- `chatgpt.desktop` - Launches https://chatgpt.com in Chrome app mode with `--disable-extensions`
-- `claude.desktop` - Launches https://claude.ai in Chrome app mode with `--disable-extensions`
+Add to `cleanup_unwanted_packages()` following this pattern:
+```bash
+if pacman -Qi package-name &> /dev/null; then
+    log_info "Found: package-name (reason)"
+    unwanted_packages+=("package-name")
+fi
+```
 
-**Usage:** Run after Chrome is installed. Creates standalone app launcher entries for ChatGPT and Claude.
+## Power Management Configuration
 
-### install.sh
+**Default:** TLP (enabled and started by install.sh)
+**Alternative:** auto-cpufreq (installed but not enabled)
 
-The `install.sh` script is organized into modular functions:
+**Conflict handling:** install.sh auto-removes `power-profiles-daemon` if detected (conflicts with TLP)
 
-**Core Functions:**
+**Switch to auto-cpufreq:**
+```bash
+sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
+```
 
-- `update_system()` - Updates all system packages via pacman
-- `install_dev_tools()` - Installs base development tools (git, vim, tmux, ripgrep, etc.)
-- `install_languages()` - Installs programming languages and compilers (Python, C/C++)
-- `install_ides()` - Installs IDEs and code editors (VSCode, Cursor AI, Obsidian from AUR)
-- `install_chinese_fonts()` - Installs Chinese fonts (Noto CJK, WenQuanYi, Adobe Source Han)
-- `install_browsers()` - Installs web browsers (Firefox, Google Chrome)
-- `install_power_management()` - Installs and configures power management tools (TLP, powertop, thermald)
-- `install_aur_helper()` - Installs yay AUR helper
-- `install_vscode_retry()` - Retries VSCode installation after yay is available
-- `install_cursor_retry()` - Retries Cursor AI installation after yay is available
-- `install_obsidian_retry()` - Retries Obsidian installation after yay is available
-- `install_chrome_retry()` - Retries Google Chrome installation after yay is available
-- `install_aur_power_tools()` - Installs additional power tools from AUR (auto-cpufreq)
-- `install_chinese_input()` - Installs and configures fcitx5 Chinese input method
+**Rationale for TLP:** 20-35% battery improvement vs 10-15% with power-profiles-daemon, per-device power management (USB, PCIe, disk, Wi-Fi), automatic AC/battery mode switching.
 
-**Execution Flow:**
+## Chinese Input Method (fcitx5)
 
-The `main()` function calls each installation function in sequence. The script uses `set -e` to exit on any error.
+**Session-aware configuration** - install.sh detects `$XDG_SESSION_TYPE`:
 
-## Customizing Scripts
+**X11 session:**
+- Adds environment variables to `/etc/environment` (GTK_IM_MODULE, QT_IM_MODULE, XMODIFIERS, SDL_IM_MODULE)
+- Creates `~/.config/autostart/org.fcitx.Fcitx5.desktop`
+- fcitx5 autostarts on login
 
-### Modifying cleanup.sh
+**Wayland session (KDE Plasma):**
+- No environment variables added (uses native Wayland input protocol)
+- No autostart file created
+- KWin launches fcitx5 via Virtual Keyboard setting
+- **Configuration required:** System Settings → Input Devices → Virtual Keyboard → Select "Fcitx 5"
 
-To add or remove packages from cleanup:
+**Post-installation (both):**
+1. Log out and log back in (required for environment changes)
+2. Run `fcitx5-configtool` to add Pinyin input method
+3. Toggle input with Ctrl+Space
 
-1. Edit the `cleanup_unwanted_packages()` function in `cleanup.sh`
-2. Add or remove package checks following this pattern:
-   ```bash
-   if pacman -Qi package-name &> /dev/null; then
-       log_info "Found: package-name (reason)"
-       unwanted_packages+=("package-name")
-   fi
-   ```
-
-### Modifying install.sh
-
-To add or remove packages from installation:
-
-1. Edit the relevant function in `install.sh`
-2. Modify the `sudo pacman -S` or `yay -S` command to include/exclude packages
-3. For new categories, create a new function following the existing pattern
-
-## Power Management Notes
-
-- **TLP** is enabled by default for laptop power optimization
-- The script automatically detects and removes **power-profiles-daemon** if present (conflicts with TLP)
-- **auto-cpufreq** is installed but not enabled (alternative to TLP)
-- Only one power management daemon should be active at a time
-- To switch from TLP to auto-cpufreq:
-  ```bash
-  sudo systemctl disable tlp
-  sudo systemctl enable auto-cpufreq
-  ```
-
-### TLP vs power-profiles-daemon
-The script chooses TLP over power-profiles-daemon because:
-- TLP provides 20-35% better battery life vs 10-15% with power-profiles-daemon
-- TLP manages individual hardware components (USB, PCIe, disk, Wi-Fi, etc.)
-- TLP automatically switches settings between AC and battery power
-- TLP is better suited for laptops used unplugged frequently
-
-## Chinese Language Support
-
-The script installs comprehensive Chinese language support:
-
-### Chinese Fonts
-- Multiple font packages for optimal Chinese character display
-- Includes Noto CJK, WenQuanYi, and Adobe Source Han fonts
-
-### Chinese Input Method (fcitx5)
-- Modern input method framework with Pinyin support
-- Automatically configures environment variables in `/etc/environment`
-- Sets up GTK and Qt integration
-- Enables autostart for fcitx5
-
-**Important:** User must log out and log back in after installation for fcitx5 to work. After relogin, configure with `fcitx5-configtool` and add Pinyin input method.
+**Wayland troubleshooting:** If you see GTK_IM_MODULE warnings, remove `~/.config/autostart/org.fcitx.Fcitx5.desktop` (updated install.sh prevents this). See `settings/README.md` for details.
 
 ## Package Manager Context
 
-- CachyOS uses **pacman** (Arch package manager)
-- AUR packages require an AUR helper like **yay**
-- The `--needed` flag skips already-installed packages
-- The `--noconfirm` flag auto-confirms installations
+- **pacman** - Official CachyOS/Arch package manager
+- **AUR** - Arch User Repository (requires helper like yay to install)
+- **yay** - AUR helper installed by install.sh (built from source in `/tmp`)
+- `--needed` flag skips already-installed packages (enables idempotency)
+- `--noconfirm` flag auto-confirms installations
 
-## Post-Installation
+## Post-Installation Actions
 
-After running the script:
-1. **Log out and log back in** - Required for fcitx5 Chinese input to work
-2. Configure fcitx5 - Run `fcitx5-configtool` and add Pinyin input method
-3. Configure git credentials - Set user name and email
-4. Verify TLP - Run `sudo tlp-stat` to check power management
-5. **Reboot** - Recommended for optimal power management
-- don't push until I verified
+1. **Log out and log back in** - Required for fcitx5 to work
+2. **Configure fcitx5** - Run `fcitx5-configtool` and add Pinyin
+3. **Configure git** - `git config --global user.name/user.email`
+4. **Verify power management** - `sudo tlp-stat`
+5. **Reboot** - Recommended for power management to fully activate
