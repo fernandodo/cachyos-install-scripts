@@ -198,3 +198,4 @@ After running the script:
 3. Configure git credentials - Set user name and email
 4. Verify TLP - Run `sudo tlp-stat` to check power management
 5. **Reboot** - Recommended for optimal power management
+- don't push until I verified
