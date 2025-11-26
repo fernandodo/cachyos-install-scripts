@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Claude
+Comment=Claude AI Assistant
+Exec=google-chrome-stable --app=https://claude.ai --class=Claude --disable-extensions
+Icon=claude
+Terminal=false
+Categories=Network;WebBrowser;AI;
+StartupWMClass=Claude
+StartupNotify=true

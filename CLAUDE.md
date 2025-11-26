@@ -4,16 +4,21 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a CachyOS (Arch-based Linux) fresh installation automation project. It provides three scripts:
+This is a CachyOS (Arch-based Linux) fresh installation automation project. It provides four scripts:
 1. **check-network.sh** - Tests internet connectivity and ranks mirrors for optimal speed
 2. **cleanup.sh** - Removes unwanted packages from the system
 3. **install.sh** - Installs development tools, browsers, Chinese support, and power management
+4. **create-shortcuts.sh** - Creates Chrome app mode shortcuts for AI assistants (ChatGPT, Claude)
 
 ## Project Structure
 
 - `check-network.sh` - Network check and mirror ranking script
 - `cleanup.sh` - Cleanup script that removes unwanted packages (rust, go, nodejs, Code-OSS, vanilla kernel)
 - `install.sh` - Main installation script that orchestrates all installation tasks
+- `create-shortcuts.sh` - Creates Chrome app mode shortcuts for ChatGPT and Claude
+- `apps/` - Directory containing .desktop shortcut files
+  - `chatgpt.desktop` - ChatGPT desktop entry
+  - `claude.desktop` - Claude desktop entry
 - `README.md` - Comprehensive documentation of all software and usage instructions
 - `CLAUDE.md` - This file, guidance for Claude Code instances
 
@@ -78,6 +83,22 @@ Standalone script for removing unwanted packages. Uses interactive confirmation 
 - nodejs, npm, yarn (unused JavaScript tools)
 - code (Code-OSS, replaced by official VSCode)
 - linux (vanilla Arch kernel, only if linux-cachyos exists)
+
+### create-shortcuts.sh
+
+Standalone script for creating Chrome app mode shortcuts for AI assistants.
+
+**Functions:**
+- `check_chrome()` - Verifies Google Chrome is installed
+- `download_icons()` - Downloads official ChatGPT and Claude icons to `~/.local/share/icons/`
+- `install_shortcuts()` - Copies .desktop files from `apps/` to `~/.local/share/applications/`
+- `update_desktop_database()` - Refreshes system application menu
+
+**Desktop files (in apps/ folder):**
+- `chatgpt.desktop` - Launches https://chatgpt.com in Chrome app mode with `--disable-extensions`
+- `claude.desktop` - Launches https://claude.ai in Chrome app mode with `--disable-extensions`
+
+**Usage:** Run after Chrome is installed. Creates standalone app launcher entries for ChatGPT and Claude.
 
 ### install.sh
 

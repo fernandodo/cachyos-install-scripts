@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=ChatGPT
+Comment=ChatGPT AI Assistant
+Exec=google-chrome-stable --app=https://chatgpt.com --class=ChatGPT --disable-extensions
+Icon=chatgpt
+Terminal=false
+Categories=Network;WebBrowser;AI;
+StartupWMClass=ChatGPT
+StartupNotify=true

@@ -4,11 +4,12 @@ Automated scripts for setting up a complete development environment and managing
 
 ## Scripts Overview
 
-This repository contains three scripts:
+This repository contains four scripts:
 
 1. **`check-network.sh`** - Tests internet connectivity and ranks mirrors for optimal speed
 2. **`cleanup.sh`** - Removes unwanted packages (rust, go, nodejs, Code-OSS, vanilla kernel)
 3. **`install.sh`** - Installs development tools, browsers, Chinese support, and power management
+4. **`create-shortcuts.sh`** - Creates Chrome app mode shortcuts for ChatGPT and Claude (no extensions)
 
 ## Quick Start
 
@@ -101,6 +102,60 @@ The script will:
 4. Show cleanup summary
 
 **Safe:** Only removes explicitly checked packages, won't break your system.
+
+---
+
+## create-shortcuts.sh - AI Assistant Shortcuts
+
+Creates Chrome app mode shortcuts for ChatGPT and Claude AI assistants.
+
+### What It Does
+
+1. **Downloads icons** - Fetches official ChatGPT and Claude icons
+2. **Creates desktop shortcuts** - Generates .desktop files for application launcher
+3. **Installs to system** - Copies files to `~/.local/share/applications/`
+4. **Updates desktop database** - Makes shortcuts appear in app menu
+
+### Features
+
+- **Chrome app mode** - Runs as standalone app without browser UI
+- **No extensions** - Uses `--disable-extensions` flag for clean environment
+- **Separate windows** - ChatGPT and Claude appear as independent apps
+- **Application launcher integration** - Shows up in your system's app menu
+
+### Usage
+
+```bash
+# Run after installing Chrome
+./create-shortcuts.sh
+```
+
+**Requirements:** Google Chrome must be installed (from `install.sh`)
+
+### What Gets Created
+
+**Desktop shortcuts:**
+- `~/.local/share/applications/chatgpt.desktop`
+- `~/.local/share/applications/claude.desktop`
+
+**Icons:**
+- `~/.local/share/icons/chatgpt.png`
+- `~/.local/share/icons/claude.png`
+
+### How to Use
+
+After installation:
+1. Open your application launcher/menu
+2. Search for "ChatGPT" or "Claude"
+3. Click to launch in app mode
+4. Pin to taskbar/dock if desired
+
+### To Remove
+
+```bash
+rm ~/.local/share/applications/{chatgpt,claude}.desktop
+rm ~/.local/share/icons/{chatgpt,claude}.png
+```
 
 ---
 
