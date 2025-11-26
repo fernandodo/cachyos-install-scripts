@@ -1,0 +1,22 @@
+# Backup files
+*.backup
+*.backup.*
+cachyos-mirrorlist.backup*
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Claude Code settings (user-specific)
+.claude/
+
+# Temporary files
+*.tmp
+*.log
