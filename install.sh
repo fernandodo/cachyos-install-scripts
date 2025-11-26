@@ -45,6 +45,7 @@ install_dev_tools() {
         base-devel \
         git \
         git-lfs \
+        github-cli \
         vim \
         neovim \
         curl \

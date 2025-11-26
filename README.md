@@ -117,6 +117,7 @@ The script will:
 | **base-devel** | Meta-package containing essential build tools (gcc, make, etc.) |
 | **git** | Distributed version control system |
 | **git-lfs** | Git Large File Storage extension |
+| **github-cli** | GitHub's official CLI tool for repository management, PRs, issues |
 | **vim** | Classic modal text editor |
 | **neovim** | Modern Vim fork with better defaults and extensibility |
 | **curl** | Command-line tool for transferring data with URLs |
