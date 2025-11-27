@@ -1,0 +1,3 @@
+- [ ] review and tweak power management settings
+  - [ ] generate a doc to discribe power setting.
+  - [ ] don't go to sleep if it is charging and lid is open

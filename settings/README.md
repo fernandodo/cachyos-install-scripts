@@ -186,3 +186,21 @@ sudo systemctl status sshd
 ```
 
 This will prevent incoming SSH connections and stop the SSH service from running.
+
+---
+
+## Change Default Shell to Bash
+
+If you have issues with fish shell in remote connections (SSH, VSCode Remote), change your default shell to bash.
+
+```bash
+# Change default shell to bash
+chsh -s /bin/bash
+
+# Verify the change
+grep $USER /etc/passwd
+```
+
+**Log out and log back in** for the change to take effect.
+
+**Result:** All SSH connections and VSCode Remote will use bash by default.
