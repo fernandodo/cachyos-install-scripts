@@ -40,10 +40,10 @@ install_power_management() → install_aur_helper()
 ```
 install_vscode_retry() → install_cursor_retry() →
 install_obsidian_retry() → install_chrome_retry() →
-install_aur_power_tools() → install_chinese_input()
+install_dropbox() → install_aur_power_tools() → install_chinese_input()
 ```
 
-**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
+**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
 
 **Key Installation Functions:**
 

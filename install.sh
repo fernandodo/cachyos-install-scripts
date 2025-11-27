@@ -332,6 +332,19 @@ install_obsidian_retry() {
     fi
 }
 
+# Install Dropbox if not already installed
+install_dropbox() {
+    if ! command -v dropbox &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            log_info "Installing Dropbox from AUR..."
+            yay -S --needed --noconfirm dropbox
+            log_info "Dropbox installed"
+        fi
+    else
+        log_info "Dropbox already installed"
+    fi
+}
+
 # Display post-installation information
 post_install_info() {
     echo ""
@@ -342,6 +355,7 @@ post_install_info() {
     echo "  - Programming languages (Python, C/C++)"
     echo "  - IDEs (VSCode, Cursor AI, Obsidian)"
     echo "  - Browsers (Firefox, Google Chrome)"
+    echo "  - Cloud storage (Dropbox)"
     echo "  - Chinese fonts (Noto CJK, WenQuanYi, Adobe Source Han)"
     echo "  - Chinese input method (fcitx5)"
     echo "  - Power management (TLP, powertop, thermald)"
@@ -386,6 +400,7 @@ main() {
     install_cursor_retry        # Retry Cursor after yay is installed
     install_obsidian_retry      # Retry Obsidian after yay is installed
     install_chrome_retry        # Retry Chrome after yay is installed
+    install_dropbox             # Install Dropbox
     install_aur_power_tools
     install_chinese_input       # Install after all other packages
 

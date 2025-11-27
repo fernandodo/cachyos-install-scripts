@@ -2,6 +2,12 @@
 
 This directory contains documentation for customizing your CachyOS system after installation.
 
+## Documentation Files
+
+- **[power-management.md](power-management.md)** - Complete guide to power management tools (TLP, auto-cpufreq, powertop, battery thresholds, etc.)
+
+---
+
 ## Change Login Screen Wallpaper
 
 **GUI Method (Recommended):**
@@ -204,3 +210,173 @@ grep $USER /etc/passwd
 **Log out and log back in** for the change to take effect.
 
 **Result:** All SSH connections and VSCode Remote will use bash by default.
+
+---
+
+## Enable Mouse Control in Tmux
+
+Enable mouse support in tmux for easier pane selection, resizing, and scrolling.
+
+**Add to `~/.tmux.conf`:**
+
+```bash
+# Enable mouse support
+set -g mouse on
+```
+
+**Apply the configuration:**
+
+```bash
+# If tmux is already running, reload config
+tmux source-file ~/.tmux.conf
+```
+
+**What mouse control enables:**
+- Click to select panes
+- Drag pane borders to resize
+- Scroll with mouse wheel to navigate history
+- Click on window names in status bar to switch windows
+- Select and copy text with mouse
+
+**To apply:**
+
+```bash
+# Create or edit tmux config
+vim ~/.tmux.conf
+# or
+nano ~/.tmux.conf
+
+# Add the line: set -g mouse on
+
+# Reload config (if tmux is running)
+tmux source-file ~/.tmux.conf
+```
+
+New tmux sessions will automatically have mouse support enabled.
+
+---
+
+## Adjust Swap Size (zram)
+
+Your system uses **zram** (compressed RAM as swap). Current size: **11.5GB** (equals RAM size).
+
+**Current configuration:** `/usr/lib/systemd/zram-generator.conf`
+- `zram-size = ram` (same as physical RAM)
+- Compression: zstd
+- Priority: 100
+
+### Change zram Size
+
+**Create custom configuration:**
+
+```bash
+sudo vim /etc/systemd/zram-generator.conf
+```
+
+**Add one of these configurations:**
+
+```ini
+[zram0]
+# Option 1: Half of RAM (recommended for 8GB+ RAM)
+zram-size = ram / 2
+
+# Option 2: Same as RAM (current default)
+zram-size = ram
+
+# Option 3: Double RAM (for systems with low RAM)
+zram-size = ram * 2
+
+# Option 4: Fixed size (e.g., 8GB)
+zram-size = 8192
+
+# Keep these settings
+compression-algorithm = zstd
+swap-priority = 100
+fs-type = swap
+```
+
+**Apply changes:**
+
+```bash
+# Reboot to apply
+sudo reboot
+```
+
+**Verify new size:**
+
+```bash
+# Check swap size
+swapon --show
+
+# Detailed info
+zramctl
+```
+
+### Recommendations:
+
+- **8GB+ RAM**: `ram / 2` (saves RAM for applications)
+- **4-8GB RAM**: `ram` (balanced)
+- **<4GB RAM**: `ram * 2` (maximize swap space)
+
+**Note:** zram uses compression (zstd), so actual memory usage is much less than the swap size shown.
+
+---
+
+## Dropbox Usage
+
+Dropbox is installed by `install.sh`. Here's how to set it up and use it.
+
+### First Launch
+
+```bash
+# Start Dropbox for the first time
+dropbox
+
+# Or use systemd to auto-start on login
+systemctl --user enable dropbox
+systemctl --user start dropbox
+```
+
+On first launch, Dropbox will:
+1. Download the Dropbox daemon (~100MB)
+2. Open a browser window to link your account
+3. Create `~/Dropbox` folder
+
+### Commands
+
+```bash
+# Start Dropbox
+dropbox start
+
+# Stop Dropbox
+dropbox stop
+
+# Check status
+dropbox status
+
+# Command-line interface
+dropbox help
+```
+
+### Auto-start on Login
+
+**Option 1: Systemd (recommended)**
+```bash
+systemctl --user enable dropbox
+systemctl --user start dropbox
+```
+
+**Option 2: KDE Autostart**
+1. System Settings → Autostart
+2. Add Program → `/usr/bin/dropbox start`
+
+### Uninstall
+
+```bash
+# Remove Dropbox
+yay -R dropbox
+
+# Remove Dropbox folder (optional)
+rm -rf ~/Dropbox
+rm -rf ~/.dropbox ~/.dropbox-dist
+```

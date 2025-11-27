@@ -268,6 +268,16 @@ rm ~/.local/share/icons/{chatgpt,claude}.png
 
 ---
 
+## Cloud Storage
+
+| Package | Description | Source |
+|---------|-------------|--------|
+| **dropbox** | Dropbox cloud file synchronization and storage | AUR |
+
+**Setup:** Run `dropbox` after installation to link your account. See `settings/README.md` for configuration details.
+
+---
+
 ## Chinese Language Support
 
 ### Chinese Fonts
