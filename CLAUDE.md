@@ -13,15 +13,19 @@ CachyOS (Arch-based Linux) fresh installation automation scripts. Four independe
 ## Key Directories
 
 - `apps/` - .desktop files for AI assistant shortcuts
-- `settings/` - Post-installation configuration documentation (login wallpaper, fcitx5 wayland fix)
+- `settings/` - Post-installation configuration documentation (login wallpaper, fcitx5 wayland fix, power management, dropbox)
 
 ## Running the Scripts
 
-**Recommended sequence:** `./check-network.sh` → `./cleanup.sh` → `./install.sh`
+**Recommended sequence:** `./check-network.sh` → `./cleanup.sh` → `./install.sh` → `./create-shortcuts.sh`
 
 **Important:** Never run as root - scripts prompt for sudo when needed.
 
-Each script is idempotent (safe to run multiple times) and uses `set -e` (exits on first error).
+All scripts use common patterns:
+- Idempotent (safe to run multiple times)
+- `set -e` (exit on first error)
+- Consistent logging functions (`log_info`, `log_warn`, `log_error`)
+- Root check prevents accidental execution as root
 
 ## Script Architecture
 
@@ -43,29 +47,54 @@ install_obsidian_retry() → install_chrome_retry() →
 install_dropbox() → install_aur_power_tools() → install_chinese_input()
 ```
 
-**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
+**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes at install.sh:252-266.
 
 **Key Installation Functions:**
 
-- `install_power_management()` - Automatically detects and removes `power-profiles-daemon` (conflicts with TLP), enables TLP and thermald services, masks systemd-rfkill
-- `install_chinese_input()` - Detects session type via `$XDG_SESSION_TYPE`:
+- `install_power_management()` (install.sh:217-250) - Automatically detects and removes `power-profiles-daemon` (conflicts with TLP), enables TLP and thermald services, masks systemd-rfkill to prevent conflicts
+- `install_chinese_input()` (install.sh:144-197) - Detects session type via `$XDG_SESSION_TYPE`:
   - **X11**: Adds environment variables to `/etc/environment`, creates autostart file
   - **Wayland (KDE Plasma)**: Uses native input protocol, no env vars needed, relies on KWin to launch fcitx5
-- `install_aur_helper()` - Clones yay from AUR to `/tmp`, builds with `makepkg -si`
+- `install_aur_helper()` (install.sh:252-266) - Clones yay from AUR to `/tmp`, builds with `makepkg -si`
+- All `*_retry()` functions (install.sh:283-346) - Check if command exists, skip if already installed, install via yay if available
 
 ### check-network.sh
 
-Tests connectivity (ping 8.8.8.8, DNS, CachyOS CDN), then uses `cachyos-rate-mirrors` to benchmark and rank mirrors. Backs up mirrorlist before changes, refreshes package databases after ranking.
+Three-stage verification process:
+1. `check_network()` (check-network.sh:34-74) - Tests connectivity (ping 8.8.8.8), DNS resolution (ping cachyos.org), CachyOS CDN (curl cdn77.cachyos.org)
+2. `rank_mirrors()` (check-network.sh:77-137) - Uses `cachyos-rate-mirrors` to benchmark and rank mirrors, backs up mirrorlist to timestamped file before changes, refreshes package databases with `pacman -Syy`
+3. `show_summary()` - Displays results
+
+**Error recovery:** If mirror ranking fails, automatically restores most recent backup mirrorlist.
 
 ### cleanup.sh
 
-Interactive removal script. Scans for unwanted packages using `pacman -Qi`, prompts for confirmation, removes with `pacman -Rns` (tries force removal with `-Rdd` if dependencies block).
+Interactive removal script with two-stage confirmation:
+1. `cleanup_unwanted_packages()` (cleanup.sh:34-112) - Scans for unwanted packages using `pacman -Qi`, adds to array if found, prompts for user confirmation
+2. Attempts graceful removal with `pacman -Rns` (removes dependencies), falls back to force removal with `pacman -Rdd` if dependencies block
+
+**Special logic:** Only removes vanilla `linux` kernel if CachyOS kernel (`linux-cachyos`) is present.
+
+### create-shortcuts.sh
+
+Four-stage installation process:
+1. `check_chrome()` (create-shortcuts.sh:34-41) - Verifies Chrome is installed, exits if not found
+2. `download_icons()` (create-shortcuts.sh:44-73) - Downloads ChatGPT and Claude icons to `~/.local/share/icons/`, skips if already exist
+3. `install_shortcuts()` (create-shortcuts.sh:76-103) - Copies .desktop files from `apps/` to `~/.local/share/applications/`
+4. `update_desktop_database()` (create-shortcuts.sh:106-119) - Updates desktop database and icon cache for immediate availability
+
+**Chrome app mode:** Shortcuts use `--app=URL --disable-extensions` flags to create standalone app windows without browser UI or extensions.
 
 ## Modifying Scripts
 
 ### Adding/removing packages in install.sh
 
-Edit the relevant function (e.g., `install_dev_tools()`) and modify the `pacman -S` or `yay -S` command. For AUR packages, ensure they're in a function called after `install_aur_helper()`.
+**For official repo packages:** Edit the relevant function (e.g., `install_dev_tools()`) and modify the `pacman -S` command.
+
+**For AUR packages:**
+1. Add to existing function with `command -v yay` check (like install.sh:93-102)
+2. Create corresponding `install_*_retry()` function (like install.sh:297-307)
+3. Call retry function in `main()` after `install_aur_helper()` (like install.sh:399-405)
 
 ### Adding packages to cleanup.sh
 
@@ -77,12 +106,18 @@ if pacman -Qi package-name &> /dev/null; then
 fi
 ```
 
+### Adding shortcuts in create-shortcuts.sh
+
+1. Create .desktop file in `apps/` directory with Chrome app mode command
+2. Add icon download logic to `download_icons()` function
+3. Add shortcut copy logic to `install_shortcuts()` function
+
 ## Power Management Configuration
 
 **Default:** TLP (enabled and started by install.sh)
 **Alternative:** auto-cpufreq (installed but not enabled)
 
-**Conflict handling:** install.sh auto-removes `power-profiles-daemon` if detected (conflicts with TLP)
+**Conflict handling:** install.sh auto-removes `power-profiles-daemon` if detected at install.sh:221-226 (conflicts with TLP)
 
 **Switch to auto-cpufreq:**
 ```bash
@@ -91,9 +126,11 @@ sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
 
 **Rationale for TLP:** 20-35% battery improvement vs 10-15% with power-profiles-daemon, per-device power management (USB, PCIe, disk, Wi-Fi), automatic AC/battery mode switching.
 
+**Details:** See settings/power-management.md for comprehensive guide including battery thresholds, CPU governors, troubleshooting.
+
 ## Chinese Input Method (fcitx5)
 
-**Session-aware configuration** - install.sh detects `$XDG_SESSION_TYPE`:
+**Session-aware configuration** - install.sh detects `$XDG_SESSION_TYPE` at install.sh:156:
 
 **X11 session:**
 - Adds environment variables to `/etc/environment` (GTK_IM_MODULE, QT_IM_MODULE, XMODIFIERS, SDL_IM_MODULE)
@@ -128,3 +165,4 @@ sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
 3. **Configure git** - `git config --global user.name/user.email`
 4. **Verify power management** - `sudo tlp-stat`
 5. **Reboot** - Recommended for power management to fully activate
+6. **Setup Dropbox** - Run `dropbox` to link account (see settings/README.md)

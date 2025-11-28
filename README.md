@@ -190,6 +190,7 @@ rm ~/.local/share/icons/{chatgpt,claude}.png
 | **btop** | Modern resource monitor with beautiful interface |
 | **tmux** | Terminal multiplexer for managing multiple sessions |
 | **tree** | Display directory structure in tree format |
+| **mesa-demos** | OpenGL demo programs (includes `glxinfo` for graphics info, `glxgears` for testing) |
 
 ### Modern CLI Tools (Rust-based replacements)
 

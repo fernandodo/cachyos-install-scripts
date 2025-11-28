@@ -62,7 +62,8 @@ install_dev_tools() {
         ripgrep \
         fd \
         bat \
-        exa
+        exa \
+        mesa-demos
 
     log_info "Development base tools installed"
 }
@@ -211,6 +212,15 @@ install_browsers() {
     else
         log_warn "yay not available, skipping Google Chrome (will install after yay)"
     fi
+
+    # WeChat (from AUR via yay)
+    if command -v yay &> /dev/null; then
+        log_info "Installing WeChat from AUR..."
+        yay -S --needed --noconfirm wechat-universal-bwrap
+        log_info "WeChat installed"
+    else
+        log_warn "yay not available, skipping WeChat (will install after yay)"
+    fi
 }
 
 # Install power management tools
@@ -345,6 +355,19 @@ install_dropbox() {
     fi
 }
 
+# Install WeChat if not already installed
+install_wechat_retry() {
+    if ! command -v wechat &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            log_info "Installing WeChat from AUR..."
+            yay -S --needed --noconfirm wechat-universal-bwrap
+            log_info "WeChat installed"
+        fi
+    else
+        log_info "WeChat already installed"
+    fi
+}
+
 # Display post-installation information
 post_install_info() {
     echo ""
@@ -400,6 +423,7 @@ main() {
     install_cursor_retry        # Retry Cursor after yay is installed
     install_obsidian_retry      # Retry Obsidian after yay is installed
     install_chrome_retry        # Retry Chrome after yay is installed
+    install_wechat_retry        # Retry WeChat after yay is installed
     install_dropbox             # Install Dropbox
     install_aur_power_tools
     install_chinese_input       # Install after all other packages

@@ -1,4 +1,4 @@
 - [ ] review and tweak power management settings
   - [x] generate a doc to discribe power setting. → **settings/power-management.md**
   - [ ] don't go to sleep if it is charging and lid is open
-- [ ] GPU driver
+- [x] GPU driver, verified.
