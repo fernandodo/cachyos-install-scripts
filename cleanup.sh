@@ -36,8 +36,9 @@ cleanup_unwanted_packages() {
     echo ""
     log_info "This script will remove packages you don't need:"
     echo "  - rust, go (programming languages not used)"
-    echo "  - nodejs, npm, yarn (JavaScript tools not used)"
+    echo "  - npm, yarn (JavaScript tools not used)"
     echo "  - code (Code-OSS, if you prefer official VSCode)"
+    echo "  - tmux (terminal multiplexer not used)"
     echo "  - linux (vanilla Arch kernel, if CachyOS kernel is present)"
     echo ""
 
@@ -55,11 +56,6 @@ cleanup_unwanted_packages() {
         unwanted_packages+=("go")
     fi
 
-    if pacman -Qi nodejs &> /dev/null; then
-        log_info "Found: nodejs (not needed)"
-        unwanted_packages+=("nodejs")
-    fi
-
     if pacman -Qi npm &> /dev/null; then
         log_info "Found: npm (not needed)"
         unwanted_packages+=("npm")
@@ -70,9 +66,15 @@ cleanup_unwanted_packages() {
         unwanted_packages+=("yarn")
     fi
 
-    if pacman -Qi code &> /dev/null; then
+    # Check for Code-OSS (not visual-studio-code-bin which provides 'code')
+    if pacman -Q code 2>/dev/null | grep -q "^code "; then
         log_info "Found: code (Code-OSS)"
         unwanted_packages+=("code")
+    fi
+
+    if pacman -Qi tmux &> /dev/null; then
+        log_info "Found: tmux (not needed)"
+        unwanted_packages+=("tmux")
     fi
 
     # Check for vanilla Arch kernel (only if CachyOS kernel is present)
@@ -123,7 +125,7 @@ show_summary() {
     echo "What's still installed:"
     echo "  - Python (python, pip, virtualenv)"
     echo "  - C/C++ tools (gcc, clang, cmake, gdb, valgrind)"
-    echo "  - Development tools (git, vim, tmux, etc.)"
+    echo "  - Development tools (git, vim, etc.)"
     echo ""
     echo "Optional next steps:"
     echo "  1. Run './install.sh' to install remaining packages"

@@ -56,7 +56,6 @@ install_dev_tools() {
         zip \
         htop \
         btop \
-        tmux \
         tree \
         fzf \
         ripgrep \
@@ -125,6 +124,11 @@ install_ides() {
     else
         log_info "Obsidian already installed"
     fi
+
+    # Okular (PDF viewer from official repos)
+    sudo pacman -S --needed --noconfirm okular
+
+    log_info "IDEs and editors installed"
 }
 
 # Install Chinese fonts
