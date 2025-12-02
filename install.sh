@@ -128,6 +128,9 @@ install_ides() {
     # Okular (PDF viewer from official repos)
     sudo pacman -S --needed --noconfirm okular
 
+    # MarkdownPart (KDE Markdown viewer component)
+    sudo pacman -S --needed --noconfirm markdownpart
+
     log_info "IDEs and editors installed"
 }
 
