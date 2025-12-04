@@ -2,3 +2,4 @@
   - [x] generate a doc to discribe power setting. → **settings/power-management.md**
   - [ ] don't go to sleep if it is charging and lid is open
 - [x] GPU driver, verified.
+- [ ] setup dropbox. which account? apple's one! 

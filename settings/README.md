@@ -195,6 +195,191 @@ This will prevent incoming SSH connections and stop the SSH service from running
 
 ---
 
+## Setup SSH Key-Based Authentication (Passwordless Login)
+
+Set up SSH keys so you can login to remote servers without entering a password each time.
+
+### Step 1: Generate SSH Key
+
+Generate a new SSH key pair (if you don't already have one):
+
+```bash
+# ED25519 (recommended - modern and secure)
+ssh-keygen -t ed25519 -C "$(whoami)@$(hostname)"
+
+# OR RSA 4096 (if you need compatibility with older systems)
+ssh-keygen -t rsa -b 4096 -C "$(whoami)@$(hostname)"
+```
+
+**When prompted:**
+- **Filename**: Press Enter for default (`~/.ssh/id_ed25519` or `~/.ssh/id_rsa`), or enter a custom name like `~/.ssh/myserver_key`
+- **Passphrase**: Optional but recommended for extra security
+
+**Your keys will be saved as:**
+- Private key: `~/.ssh/id_ed25519` (keep this secret!)
+- Public key: `~/.ssh/id_ed25519.pub` (safe to share)
+
+### Step 2: Copy Public Key to Remote Server
+
+**Method 1: Automatic (Easiest)**
+
+```bash
+# Copy key to remote server
+ssh-copy-id username@remote-hostname
+
+# Examples:
+ssh-copy-id user@192.168.1.100
+ssh-copy-id user@example.com
+```
+
+**Method 2: Manual**
+
+If `ssh-copy-id` doesn't work:
+
+```bash
+# 1. Display your public key
+cat ~/.ssh/id_ed25519.pub
+
+# 2. Login to remote server
+ssh username@remote-hostname
+
+# 3. On remote server, add your public key
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
+echo "YOUR_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+exit
+```
+
+### Step 3: Test Passwordless Login
+
+```bash
+# Try logging in - should not ask for password
+ssh username@remote-hostname
+```
+
+### Step 4: Create SSH Config (Optional but Convenient)
+
+Create `~/.ssh/config` to use short aliases:
+
+```bash
+# Edit SSH config
+vim ~/.ssh/config
+```
+
+Add this configuration:
+
+```
+# Default settings for all hosts
+Host *
+    AddKeysToAgent yes
+    IdentityFile ~/.ssh/id_ed25519
+    IdentityFile ~/.ssh/id_rsa
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
+# Specific server configuration
+Host myserver
+    HostName 192.168.1.100
+    User username
+
+Host github
+    HostName github.com
+    User git
+```
+
+**Explanation:**
+- `Host *` applies to all SSH connections (including direct IP/hostname connections)
+- `IdentityFile` lines tell SSH which keys to try automatically
+- Specific host configs inherit the default settings
+
+**Now you can connect with:**
+
+```bash
+# Using the alias (no password needed)
+ssh myserver
+
+# Using direct hostname/IP (also no password needed now!)
+ssh username@192.168.1.100
+
+# GitHub also works automatically
+git clone git@github.com:user/repo.git
+```
+
+### Multiple SSH Keys
+
+If you need different keys for different servers:
+
+```bash
+# Generate keys with custom names
+ssh-keygen -t ed25519 -f ~/.ssh/work_key
+ssh-keygen -t ed25519 -f ~/.ssh/personal_key
+
+# In ~/.ssh/config, specify which key to use:
+Host work-server
+    HostName work.example.com
+    User myuser
+    IdentityFile ~/.ssh/work_key
+
+Host personal-server
+    HostName home.example.com
+    User myuser
+    IdentityFile ~/.ssh/personal_key
+```
+
+### Troubleshooting
+
+**Problem: Still asking for password**
+
+```bash
+# Check permissions (must be exact)
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/id_ed25519
+chmod 644 ~/.ssh/id_ed25519.pub
+chmod 600 ~/.ssh/config
+
+# On remote server:
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+```
+
+**Problem: Permission denied (publickey)**
+
+```bash
+# Test connection with verbose output
+ssh -v username@remote-hostname
+
+# Check if SSH key is being offered
+ssh-add -l
+
+# Add key to SSH agent if needed
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_ed25519
+```
+
+**Problem: Too many authentication failures**
+
+This happens if you have many SSH keys. Solution:
+
+```bash
+# In ~/.ssh/config, add:
+Host *
+    IdentitiesOnly yes
+```
+
+### Security Best Practices
+
+1. **Always use a passphrase** on your private key
+2. **Never share your private key** (`~/.ssh/id_ed25519`)
+3. **Use different keys** for different purposes (work, personal, GitHub)
+4. **Set correct permissions**:
+   - Private key: `600` (only you can read/write)
+   - Public key: `644` (anyone can read)
+   - `.ssh` directory: `700` (only you can access)
+   - `authorized_keys`: `600` (only you can read/write)
+
+---
+
 ## Change Default Shell to Bash
 
 If you have issues with fish shell in remote connections (SSH, VSCode Remote), change your default shell to bash.
