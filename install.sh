@@ -228,6 +228,15 @@ install_browsers() {
     else
         log_warn "yay not available, skipping WeChat (will install after yay)"
     fi
+
+    # Spotify (from AUR via yay)
+    if command -v yay &> /dev/null; then
+        log_info "Installing Spotify from AUR..."
+        yay -S --needed --noconfirm spotify
+        log_info "Spotify installed"
+    else
+        log_warn "yay not available, skipping Spotify (will install after yay)"
+    fi
 }
 
 # Install power management tools
@@ -375,6 +384,19 @@ install_wechat_retry() {
     fi
 }
 
+# Install Spotify if not already installed
+install_spotify_retry() {
+    if ! command -v spotify &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            log_info "Installing Spotify from AUR..."
+            yay -S --needed --noconfirm spotify
+            log_info "Spotify installed"
+        fi
+    else
+        log_info "Spotify already installed"
+    fi
+}
+
 # Display post-installation information
 post_install_info() {
     echo ""
@@ -431,6 +453,7 @@ main() {
     install_obsidian_retry      # Retry Obsidian after yay is installed
     install_chrome_retry        # Retry Chrome after yay is installed
     install_wechat_retry        # Retry WeChat after yay is installed
+    install_spotify_retry       # Retry Spotify after yay is installed
     install_dropbox             # Install Dropbox
     install_aur_power_tools
     install_chinese_input       # Install after all other packages
