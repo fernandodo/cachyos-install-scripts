@@ -80,9 +80,22 @@ install_languages() {
         cmake \
         make \
         gdb \
-        valgrind
+        valgrind \
+        pkg-config
 
     log_info "Programming languages installed"
+}
+
+# Install GUI development libraries
+install_gui_libs() {
+    log_info "Installing GUI development libraries..."
+
+    sudo pacman -S --needed --noconfirm \
+        gtkmm-4.0 \
+        gtkmm-4.0-docs \
+        gtk4
+
+    log_info "GUI development libraries installed"
 }
 
 # Install IDEs and editors
@@ -443,6 +456,7 @@ main() {
     update_system
     install_dev_tools
     install_languages
+    install_gui_libs
     install_ides
     install_chinese_fonts
     install_browsers
