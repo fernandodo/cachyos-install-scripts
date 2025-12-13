@@ -78,10 +78,20 @@ install_languages() {
         gcc \
         clang \
         cmake \
+        ninja \
         make \
         gdb \
         valgrind \
         pkg-config
+
+    # Oracle Java Runtime (LTS) from AUR
+    if command -v yay &> /dev/null; then
+        log_info "Installing Oracle Java Runtime (LTS)..."
+        yay -S --needed --noconfirm jre-lts
+        log_info "Oracle Java Runtime installed"
+    else
+        log_warn "yay not available yet, will install Java after yay is ready"
+    fi
 
     log_info "Programming languages installed"
 }
@@ -93,7 +103,8 @@ install_gui_libs() {
     sudo pacman -S --needed --noconfirm \
         gtkmm-4.0 \
         gtkmm-4.0-docs \
-        gtk4
+        gtk4 \
+        libappindicator
 
     log_info "GUI development libraries installed"
 }
@@ -143,6 +154,9 @@ install_ides() {
 
     # MarkdownPart (KDE Markdown viewer component)
     sudo pacman -S --needed --noconfirm markdownpart
+
+    # Freeplane (Mind mapping tool from official repos)
+    sudo pacman -S --needed --noconfirm freeplane
 
     log_info "IDEs and editors installed"
 }
@@ -410,6 +424,19 @@ install_spotify_retry() {
     fi
 }
 
+# Install Oracle Java Runtime if not already installed
+install_java_retry() {
+    if ! command -v java &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            log_info "Installing Oracle Java Runtime (LTS) from AUR..."
+            yay -S --needed --noconfirm jre-lts
+            log_info "Oracle Java Runtime installed"
+        fi
+    else
+        log_info "Java already installed"
+    fi
+}
+
 # Display post-installation information
 post_install_info() {
     echo ""
@@ -462,6 +489,7 @@ main() {
     install_browsers
     install_power_management
     install_aur_helper
+    install_java_retry          # Retry Java after yay is installed
     install_vscode_retry        # Retry VSCode after yay is installed
     install_cursor_retry        # Retry Cursor after yay is installed
     install_obsidian_retry      # Retry Obsidian after yay is installed

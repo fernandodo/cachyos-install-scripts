@@ -511,6 +511,8 @@ zramctl
 
 Dropbox is installed by `install.sh`. Here's how to set it up and use it.
 
+**Note for KDE Plasma 6:** The `libappindicator` package is required for Dropbox system tray icon to display properly. This is automatically installed by `install.sh`.
+
 ### First Launch
 
 ```bash

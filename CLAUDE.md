@@ -6,14 +6,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 CachyOS (Arch-based Linux) fresh installation automation scripts. Four independent scripts that can be run in sequence or standalone:
 1. **check-network.sh** - Network diagnostics and mirror optimization
-2. **cleanup.sh** - Package removal (rust, go, nodejs, Code-OSS, vanilla kernel)
+2. **cleanup.sh** - Package removal (rust, go, nodejs, Code-OSS, vanilla kernel, tmux)
 3. **install.sh** - Development environment installation (main script)
 4. **create-shortcuts.sh** - Chrome app mode shortcuts for ChatGPT/Claude
 
 ## Key Directories
 
-- `apps/` - .desktop files for AI assistant shortcuts
-- `settings/` - Post-installation configuration documentation (login wallpaper, fcitx5 wayland fix, power management, dropbox)
+- `apps/` - .desktop files for AI assistant shortcuts (chatgpt.desktop, claude.desktop)
+- `settings/` - Post-installation configuration documentation (login wallpaper, fcitx5 wayland fix, power management, dropbox, SSH setup)
 
 ## Running the Scripts
 
@@ -47,16 +47,16 @@ install_obsidian_retry() → install_chrome_retry() →
 install_dropbox() → install_aur_power_tools() → install_chinese_input()
 ```
 
-**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes at install.sh:252-266.
+**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox, WeChat, Spotify) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
 
 **Key Installation Functions:**
 
-- `install_power_management()` (install.sh:217-250) - Automatically detects and removes `power-profiles-daemon` (conflicts with TLP), enables TLP and thermald services, masks systemd-rfkill to prevent conflicts
-- `install_chinese_input()` (install.sh:144-197) - Detects session type via `$XDG_SESSION_TYPE`:
+- `install_power_management()` (install.sh:256-289) - Automatically detects and removes `power-profiles-daemon` (conflicts with TLP), enables TLP and thermald services, masks systemd-rfkill to prevent conflicts
+- `install_chinese_input()` (install.sh:165-218) - Detects session type via `$XDG_SESSION_TYPE`:
   - **X11**: Adds environment variables to `/etc/environment`, creates autostart file
   - **Wayland (KDE Plasma)**: Uses native input protocol, no env vars needed, relies on KWin to launch fcitx5
-- `install_aur_helper()` (install.sh:252-266) - Clones yay from AUR to `/tmp`, builds with `makepkg -si`
-- All `*_retry()` functions (install.sh:283-346) - Check if command exists, skip if already installed, install via yay if available
+- `install_aur_helper()` (install.sh:292-305) - Clones yay from AUR to `/tmp`, builds with `makepkg -si`
+- All `*_retry()` functions (install.sh:323-411) - Check if command exists, skip if already installed, install via yay if available
 
 ### check-network.sh
 
@@ -70,10 +70,12 @@ Three-stage verification process:
 ### cleanup.sh
 
 Interactive removal script with two-stage confirmation:
-1. `cleanup_unwanted_packages()` (cleanup.sh:34-112) - Scans for unwanted packages using `pacman -Qi`, adds to array if found, prompts for user confirmation
+1. `cleanup_unwanted_packages()` (cleanup.sh:34-114) - Scans for unwanted packages using `pacman -Qi`, adds to array if found, prompts for user confirmation
 2. Attempts graceful removal with `pacman -Rns` (removes dependencies), falls back to force removal with `pacman -Rdd` if dependencies block
 
-**Special logic:** Only removes vanilla `linux` kernel if CachyOS kernel (`linux-cachyos`) is present.
+**Packages removed:** rust, go, npm, yarn, code (Code-OSS), tmux, vanilla linux kernel
+
+**Special logic:** Only removes vanilla `linux` kernel if CachyOS kernel (`linux-cachyos`) is present (cleanup.sh:81-85).
 
 ### create-shortcuts.sh
 
@@ -92,9 +94,9 @@ Four-stage installation process:
 **For official repo packages:** Edit the relevant function (e.g., `install_dev_tools()`) and modify the `pacman -S` command.
 
 **For AUR packages:**
-1. Add to existing function with `command -v yay` check (like install.sh:93-102)
-2. Create corresponding `install_*_retry()` function (like install.sh:297-307)
-3. Call retry function in `main()` after `install_aur_helper()` (like install.sh:399-405)
+1. Add to existing function with `command -v yay` check (like install.sh:106-115 for VSCode)
+2. Create corresponding `install_*_retry()` function (like install.sh:336-346 for VSCode)
+3. Call retry function in `main()` after `install_aur_helper()` (like install.sh:465-471)
 
 ### Adding packages to cleanup.sh
 
@@ -117,7 +119,7 @@ fi
 **Default:** TLP (enabled and started by install.sh)
 **Alternative:** auto-cpufreq (installed but not enabled)
 
-**Conflict handling:** install.sh auto-removes `power-profiles-daemon` if detected at install.sh:221-226 (conflicts with TLP)
+**Conflict handling:** install.sh auto-removes `power-profiles-daemon` if detected at install.sh:260-265 (conflicts with TLP)
 
 **Switch to auto-cpufreq:**
 ```bash
@@ -126,14 +128,16 @@ sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
 
 **Rationale for TLP:** 20-35% battery improvement vs 10-15% with power-profiles-daemon, per-device power management (USB, PCIe, disk, Wi-Fi), automatic AC/battery mode switching.
 
+**Note on thermald:** Thermald is enabled but inactive on AMD CPUs (Intel-only tool). This is expected behavior.
+
 **Details:** See settings/power-management.md for comprehensive guide including battery thresholds, CPU governors, troubleshooting.
 
 ## Chinese Input Method (fcitx5)
 
-**Session-aware configuration** - install.sh detects `$XDG_SESSION_TYPE` at install.sh:156:
+**Session-aware configuration** - install.sh detects `$XDG_SESSION_TYPE` at install.sh:177:
 
 **X11 session:**
-- Adds environment variables to `/etc/environment` (GTK_IM_MODULE, QT_IM_MODULE, XMODIFIERS, SDL_IM_MODULE)
+- Adds environment variables to `/etc/environment` (GTK_IM_MODULE, QT_IM_MODULE, XMODIFIERS, SDL_IM_MODULE, GLFW_IM_MODULE)
 - Creates `~/.config/autostart/org.fcitx.Fcitx5.desktop`
 - fcitx5 autostarts on login
 
@@ -148,7 +152,7 @@ sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
 2. Run `fcitx5-configtool` to add Pinyin input method
 3. Toggle input with Ctrl+Space
 
-**Wayland troubleshooting:** If you see GTK_IM_MODULE warnings, remove `~/.config/autostart/org.fcitx.Fcitx5.desktop` (updated install.sh prevents this). See `settings/README.md` for details.
+**Wayland troubleshooting:** If you see GTK_IM_MODULE warnings, remove `~/.config/autostart/org.fcitx.Fcitx5.desktop` (updated install.sh prevents this). See `settings/README.md` (line 52-78) for detailed fix.
 
 ## Package Manager Context
 
@@ -158,6 +162,24 @@ sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
 - `--needed` flag skips already-installed packages (enables idempotency)
 - `--noconfirm` flag auto-confirms installations
 
+## Installed Applications Summary
+
+**Development Tools:** base-devel, git, git-lfs, github-cli, vim, neovim, curl, wget, openssh, rsync, htop, btop, tmux, tree, fzf, ripgrep, fd, bat, exa, mesa-demos
+
+**Languages & Compilers:** python, python-pip, python-virtualenv, gcc, clang, cmake, ninja, make, gdb, valgrind, pkg-config, jre-lts (Oracle Java 21 LTS, AUR)
+
+**GUI Libraries:** gtkmm-4.0, gtkmm-4.0-docs, gtk4, libappindicator
+
+**IDEs & Editors:** visual-studio-code-bin (AUR), cursor-bin (AUR), obsidian (AUR), okular, markdownpart, freeplane
+
+**Browsers:** firefox, google-chrome (AUR)
+
+**Chinese Support:** noto-fonts-cjk, wqy-zenhei, wqy-microhei, adobe-source-han-sans-cn-fonts, adobe-source-han-serif-cn-fonts, fcitx5, fcitx5-gtk, fcitx5-qt, fcitx5-configtool, fcitx5-chinese-addons
+
+**Power Management:** tlp, tlp-rdw, powertop, thermald, cpupower, acpi, acpi_call, auto-cpufreq (AUR)
+
+**Cloud & Communication:** dropbox (AUR), wechat-universal-bwrap (AUR), spotify (AUR)
+
 ## Post-Installation Actions
 
 1. **Log out and log back in** - Required for fcitx5 to work
@@ -165,4 +187,5 @@ sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
 3. **Configure git** - `git config --global user.name/user.email`
 4. **Verify power management** - `sudo tlp-stat`
 5. **Reboot** - Recommended for power management to fully activate
-6. **Setup Dropbox** - Run `dropbox` to link account (see settings/README.md)
+6. **Setup Dropbox** - Run `dropbox` to link account (see settings/README.md lines 512-567)
+7. **Create AI shortcuts** - Run `./create-shortcuts.sh` after Chrome is installed
