@@ -553,9 +553,36 @@ systemctl --user enable dropbox
 systemctl --user start dropbox
 ```
 
+**IMPORTANT - Fix for KDE Plasma 6 Tray Icon:**
+
+If Dropbox starts too quickly (before libappindicator is ready), the tray icon won't load. To fix this, add a startup delay:
+
+```bash
+# Edit the systemd service
+systemctl --user edit dropbox
+```
+
+Add the following between `### Anything between here ...` and `### Edits below this comment will be discarded`:
+
+```ini
+[Service]
+ExecStart=
+ExecStart=/bin/bash -c "sleep 10 && /usr/bin/dropbox"
+```
+
+Save and exit (Ctrl+O, Enter, Ctrl+X in nano), then restart Dropbox:
+
+```bash
+systemctl --user restart dropbox
+```
+
+The 20-second delay ensures libappindicator is fully loaded before Dropbox starts, guaranteeing the tray icon appears.
+
 **Option 2: KDE Autostart**
 1. System Settings → Autostart
 2. Add Program → `/usr/bin/dropbox start`
+
+Note: If using KDE Autostart, you may need to add a delay script instead of calling dropbox directly.
 
 ### Uninstall
 

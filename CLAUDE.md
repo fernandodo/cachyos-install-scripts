@@ -162,6 +162,25 @@ sudo systemctl disable tlp && sudo systemctl enable auto-cpufreq
 - `--needed` flag skips already-installed packages (enables idempotency)
 - `--noconfirm` flag auto-confirms installations
 
+## Dropbox + KDE Plasma 6 Configuration
+
+**Critical timing issue:** Dropbox requires libappindicator to display tray icon, but if Dropbox starts too quickly (before libappindicator is ready), the icon won't load.
+
+**Solution:** Add startup delay to systemd service:
+
+```bash
+systemctl --user edit dropbox
+```
+
+Add between the comment markers:
+```ini
+[Service]
+ExecStart=
+ExecStart=/bin/bash -c "sleep 10 && /usr/bin/dropbox"
+```
+
+This ensures libappindicator is fully loaded before Dropbox starts. See settings/README.md (lines 556-579) for complete instructions.
+
 ## Installed Applications Summary
 
 **Development Tools:** base-devel, git, git-lfs, github-cli, vim, neovim, curl, wget, openssh, rsync, htop, btop, tmux, tree, fzf, ripgrep, fd, bat, exa, mesa-demos
