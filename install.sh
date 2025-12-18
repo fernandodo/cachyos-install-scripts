@@ -437,6 +437,35 @@ install_java_retry() {
     fi
 }
 
+# Optional: Install ModemManager for mobile broadband support
+install_modemmanager_optional() {
+    echo ""
+    log_info "=== Optional: ModemManager Installation ==="
+    echo ""
+    echo "ModemManager provides mobile broadband modem management."
+    echo "Install this if you use:"
+    echo "  - USB modems / dongles (3G/4G/5G)"
+    echo "  - Mobile broadband cards"
+    echo "  - Tethering with mobile devices"
+    echo ""
+    read -p "Do you want to install ModemManager? [y/N] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        log_info "Installing ModemManager..."
+        sudo pacman -S --needed --noconfirm modemmanager
+
+        log_info "Enabling and starting ModemManager service..."
+        sudo systemctl enable ModemManager
+        sudo systemctl start ModemManager
+
+        log_info "✓ ModemManager installed and enabled"
+        echo ""
+        echo "ModemManager is now running and will start automatically on boot."
+    else
+        log_info "Skipping ModemManager installation"
+    fi
+}
+
 # Display post-installation information
 post_install_info() {
     echo ""
@@ -499,6 +528,9 @@ main() {
     install_dropbox             # Install Dropbox
     install_aur_power_tools
     install_chinese_input       # Install after all other packages
+
+    # Optional installations (with user prompt)
+    install_modemmanager_optional
 
     post_install_info
 }

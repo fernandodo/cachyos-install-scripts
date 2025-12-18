@@ -42,12 +42,18 @@ install_power_management() → install_aur_helper()
 
 **Phase 2 - Retry AUR packages after yay is available:**
 ```
-install_vscode_retry() → install_cursor_retry() →
-install_obsidian_retry() → install_chrome_retry() →
-install_dropbox() → install_aur_power_tools() → install_chinese_input()
+install_java_retry() → install_vscode_retry() → install_cursor_retry() →
+install_obsidian_retry() → install_chrome_retry() → install_wechat_retry() →
+install_spotify_retry() → install_dropbox() → install_aur_power_tools() →
+install_chinese_input()
 ```
 
-**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox, WeChat, Spotify) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
+**Phase 3 - Optional installations (with user prompt):**
+```
+install_modemmanager_optional()
+```
+
+**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox, WeChat, Spotify, Oracle Java) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
 
 **Key Installation Functions:**
 
@@ -56,7 +62,8 @@ install_dropbox() → install_aur_power_tools() → install_chinese_input()
   - **X11**: Adds environment variables to `/etc/environment`, creates autostart file
   - **Wayland (KDE Plasma)**: Uses native input protocol, no env vars needed, relies on KWin to launch fcitx5
 - `install_aur_helper()` (install.sh:292-305) - Clones yay from AUR to `/tmp`, builds with `makepkg -si`
-- All `*_retry()` functions (install.sh:323-411) - Check if command exists, skip if already installed, install via yay if available
+- All `*_retry()` functions (install.sh:323-438) - Check if command exists, skip if already installed, install via yay if available
+- `install_modemmanager_optional()` (install.sh:440-467) - Prompts user to optionally install ModemManager for mobile broadband support, enables and starts service if user accepts
 
 ### check-network.sh
 
