@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Gemini
+Comment=Gemini AI Assistant
+Exec=google-chrome-stable --app=https://gemini.google.com --disable-extensions
+Icon=gemini
+Terminal=false
+Categories=Network;WebBrowser;X-AI;
+StartupNotify=true

@@ -6,5 +6,5 @@ Comment=Claude AI Assistant
 Exec=google-chrome-stable --app=https://claude.ai --disable-extensions
 Icon=claude
 Terminal=false
-Categories=Network;WebBrowser;AI;
+Categories=Network;WebBrowser;X-AI;
 StartupNotify=true

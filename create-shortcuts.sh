@@ -69,6 +69,17 @@ download_icons() {
         log_info "Claude icon already exists"
     fi
 
+    # Gemini icon
+    if ! [ -f "$icons_dir/gemini.png" ]; then
+        log_info "Downloading Gemini icon..."
+        curl -sL "https://www.google.com/s2/favicons?domain=gemini.google.com&sz=128" \
+            -o "$icons_dir/gemini.png" || {
+            log_warn "Failed to download Gemini icon, using Chrome icon"
+        }
+    else
+        log_info "Gemini icon already exists"
+    fi
+
     log_info "✓ Icons ready"
 }
 
@@ -100,6 +111,16 @@ install_shortcuts() {
         log_error "claude.desktop not found in apps/ folder"
         exit 1
     fi
+
+    # Copy Gemini shortcut
+    if [ -f "$script_dir/apps/gemini.desktop" ]; then
+        cp "$script_dir/apps/gemini.desktop" "$apps_dir/"
+        chmod +x "$apps_dir/gemini.desktop"
+        log_info "✓ Gemini shortcut installed"
+    else
+        log_error "gemini.desktop not found in apps/ folder"
+        exit 1
+    fi
 }
 
 # Update desktop database
@@ -128,6 +149,7 @@ show_summary() {
     echo "Installed shortcuts:"
     echo "  ✓ ChatGPT - https://chatgpt.com"
     echo "  ✓ Claude  - https://claude.ai"
+    echo "  ✓ Gemini  - https://gemini.google.com"
     echo ""
     echo "Features:"
     echo "  - Runs in Chrome app mode (no browser UI)"
@@ -141,8 +163,8 @@ show_summary() {
     echo "  - Click to launch"
     echo ""
     echo "To remove:"
-    echo "  rm ~/.local/share/applications/{chatgpt,claude}.desktop"
-    echo "  rm ~/.local/share/icons/{chatgpt,claude}.png"
+    echo "  rm ~/.local/share/applications/{chatgpt,claude,gemini}.desktop"
+    echo "  rm ~/.local/share/icons/{chatgpt,claude,gemini}.png"
     echo ""
 }
 

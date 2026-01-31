@@ -6,5 +6,5 @@ Comment=ChatGPT AI Assistant
 Exec=google-chrome-stable --app=https://chatgpt.com --disable-extensions
 Icon=chatgpt
 Terminal=false
-Categories=Network;WebBrowser;AI;
+Categories=Network;WebBrowser;X-AI;
 StartupNotify=true
