@@ -96,6 +96,15 @@ install_languages() {
     log_info "Programming languages installed"
 }
 
+# Install Node.js and npm
+install_nodejs_npm() {
+    log_info "Installing Node.js and npm..."
+    sudo pacman -S --needed --noconfirm \
+        nodejs \
+        npm
+    log_info "Node.js installed via pacman: $(node -v), npm: $(npm -v)"
+}
+
 # Install GUI development libraries
 install_gui_libs() {
     log_info "Installing GUI development libraries..."
@@ -157,6 +166,9 @@ install_ides() {
 
     # Freeplane (Mind mapping tool from official repos)
     sudo pacman -S --needed --noconfirm freeplane
+
+    # LibreOffice (office suite from official repos)
+    sudo pacman -S --needed --noconfirm libreoffice-fresh
 
     log_info "IDEs and editors installed"
 }
@@ -437,6 +449,32 @@ install_java_retry() {
     fi
 }
 
+# Install Eudic dictionary if not already installed
+install_eudic_retry() {
+    if ! command -v eudic &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            log_info "Installing Eudic (欧路词典) from AUR..."
+            yay -S --needed --noconfirm eudic
+            log_info "Eudic installed"
+        fi
+    else
+        log_info "Eudic already installed"
+    fi
+}
+
+# Install PDFsam Basic if not already installed
+install_pdfsam_retry() {
+    if ! command -v pdfsam &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            log_info "Installing PDFsam Basic from AUR..."
+            yay -S --needed --noconfirm pdfsam
+            log_info "PDFsam Basic installed"
+        fi
+    else
+        log_info "PDFsam Basic already installed"
+    fi
+}
+
 # Optional: Install ModemManager for mobile broadband support
 install_modemmanager_optional() {
     echo ""
@@ -473,12 +511,15 @@ post_install_info() {
     echo ""
     echo "Installed components:"
     echo "  - Development tools (git, vim, tmux, ripgrep, fzf, etc.)"
-    echo "  - Programming languages (Python, C/C++)"
+    echo "  - Programming languages (Python, Node.js, C/C++)"
     echo "  - IDEs (VSCode, Cursor AI, Obsidian)"
+    echo "  - Office suite (LibreOffice)"
     echo "  - Browsers (Firefox, Google Chrome)"
     echo "  - Cloud storage (Dropbox)"
+    echo "  - PDF tools (Okular viewer, PDFsam Basic)"
     echo "  - Chinese fonts (Noto CJK, WenQuanYi, Adobe Source Han)"
     echo "  - Chinese input method (fcitx5)"
+    echo "  - Chinese-English dictionary (Eudic 欧路词典)"
     echo "  - Power management (TLP, powertop, thermald)"
     echo ""
     echo "Power Management Notes:"
@@ -512,6 +553,7 @@ main() {
     update_system
     install_dev_tools
     install_languages
+    install_nodejs_npm
     install_gui_libs
     install_ides
     install_chinese_fonts
@@ -525,6 +567,8 @@ main() {
     install_chrome_retry        # Retry Chrome after yay is installed
     install_wechat_retry        # Retry WeChat after yay is installed
     install_spotify_retry       # Retry Spotify after yay is installed
+    install_eudic_retry         # Retry Eudic dictionary after yay is installed
+    install_pdfsam_retry        # Retry PDFsam Basic after yay is installed
     install_dropbox             # Install Dropbox
     install_aur_power_tools
     install_chinese_input       # Install after all other packages

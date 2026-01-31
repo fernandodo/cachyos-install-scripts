@@ -44,8 +44,8 @@ install_power_management() → install_aur_helper()
 ```
 install_java_retry() → install_vscode_retry() → install_cursor_retry() →
 install_obsidian_retry() → install_chrome_retry() → install_wechat_retry() →
-install_spotify_retry() → install_dropbox() → install_aur_power_tools() →
-install_chinese_input()
+install_spotify_retry() → install_eudic_retry() → install_pdfsam_retry() →
+install_dropbox() → install_aur_power_tools() → install_chinese_input()
 ```
 
 **Phase 3 - Optional installations (with user prompt):**
@@ -53,7 +53,7 @@ install_chinese_input()
 install_modemmanager_optional()
 ```
 
-**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox, WeChat, Spotify, Oracle Java) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
+**Why this pattern:** AUR packages (VSCode, Cursor, Chrome, Obsidian, Dropbox, WeChat, Spotify, Eudic, PDFsam, Oracle Java) require yay, but yay must be built from AUR first. Initial install functions check `command -v yay` and skip if unavailable, then retry functions install after `install_aur_helper()` completes.
 
 **Key Installation Functions:**
 
@@ -198,6 +198,8 @@ This ensures libappindicator is fully loaded before Dropbox starts. See settings
 
 **IDEs & Editors:** visual-studio-code-bin (AUR), cursor-bin (AUR), obsidian (AUR), okular, markdownpart, freeplane
 
+**PDF Tools:** okular (official repos - viewer), pdfsam (AUR - split/merge PDFs)
+
 **Browsers:** firefox, google-chrome (AUR)
 
 **Chinese Support:** noto-fonts-cjk, wqy-zenhei, wqy-microhei, adobe-source-han-sans-cn-fonts, adobe-source-han-serif-cn-fonts, fcitx5, fcitx5-gtk, fcitx5-qt, fcitx5-configtool, fcitx5-chinese-addons
@@ -205,6 +207,8 @@ This ensures libappindicator is fully loaded before Dropbox starts. See settings
 **Power Management:** tlp, tlp-rdw, powertop, thermald, cpupower, acpi, acpi_call, auto-cpufreq (AUR)
 
 **Cloud & Communication:** dropbox (AUR), wechat-universal-bwrap (AUR), spotify (AUR)
+
+**Chinese Learning Tools:** eudic (AUR) - Eudic Dictionary (欧路词典), authoritative English-Chinese dictionary for language learners
 
 ## Post-Installation Actions
 

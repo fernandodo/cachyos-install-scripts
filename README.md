@@ -260,6 +260,29 @@ rm ~/.local/share/icons/{chatgpt,claude}.png
 
 ---
 
+## PDF Tools
+
+| Package | Description | Source |
+|---------|-------------|--------|
+| **okular** | KDE's universal document viewer with PDF support | Official repos |
+| **pdfsam** | PDFsam Basic - Free PDF split and merge tool | AUR |
+
+**PDFsam Basic Features:**
+- Split PDF documents by page ranges, bookmarks, or size
+- Merge multiple PDF files into a single document
+- Extract pages from PDFs
+- Rotate pages
+- Mix/Alternate pages from multiple documents
+- Simple, user-friendly GUI interface
+
+**Okular Features:**
+- View PDFs, EPUBs, images, and many other document formats
+- Annotations and highlighting support
+- Form filling capabilities
+- Digital signatures support
+
+---
+
 ## Web Browsers
 
 | Package | Description | Source |
@@ -290,6 +313,19 @@ rm ~/.local/share/icons/{chatgpt,claude}.png
 | **wqy-microhei** | WenQuanYi Micro Hei - Chinese font optimized for screen display |
 | **adobe-source-han-sans-cn-fonts** | Adobe Source Han Sans for Simplified Chinese |
 | **adobe-source-han-serif-cn-fonts** | Adobe Source Han Serif for Simplified Chinese |
+
+### Chinese-English Dictionary
+
+| Package | Description | Source |
+|---------|-------------|--------|
+| **eudic** | Eudic Dictionary (欧路词典) - Authoritative English-Chinese dictionary software, essential tool for English learners | AUR |
+
+**Features:**
+- Comprehensive English-Chinese dictionary
+- Offline dictionary support
+- Word pronunciation and example sentences
+- Vocabulary management and word lists
+- Linux desktop application with full GUI
 
 ### Chinese Input Method (fcitx5)
 

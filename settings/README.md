@@ -80,6 +80,36 @@ fcitx5 -r
 
 ---
 
+## Fix `npm -g` Install (Fish) - No sudo
+
+On Arch/CachyOS, the system `nodejs`/`npm` packages may default to a global prefix under `/usr`, which makes `npm -g install ...` fail with permission errors unless you use `sudo` (not recommended).
+
+Use a **user-writable prefix** in your home directory:
+
+```bash
+# Use ~/.local for global npm packages (creates ~/.local/bin and ~/.local/lib/node_modules)
+mkdir -p ~/.local
+npm config set prefix "$HOME/.local"
+```
+
+Then ensure Fish can find global npm binaries:
+
+```fish
+# Add ~/.local/bin to PATH (recommended Fish way)
+fish_add_path -g ~/.local/bin
+```
+
+Verify:
+
+```bash
+npm config get prefix
+npm -g bin
+```
+
+After opening a new terminal (or `exec fish`), `npm -g install <pkg>` should work without `sudo`.
+
+---
+
 ## Enable SSH Access from Other Computers
 
 SSH server is installed by `install.sh`, but the firewall blocks incoming connections by default.
