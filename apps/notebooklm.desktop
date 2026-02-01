@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=NotebookLM
+Comment=NotebookLM AI Assistant
+Exec=google-chrome-stable --app=https://notebooklm.google.com --disable-extensions
+Icon=notebooklm
+Terminal=false
+Categories=Network;WebBrowser;X-AI;
+StartupNotify=true

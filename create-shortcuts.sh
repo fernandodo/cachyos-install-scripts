@@ -80,6 +80,17 @@ download_icons() {
         log_info "Gemini icon already exists"
     fi
 
+    # NotebookLM icon
+    if ! [ -f "$icons_dir/notebooklm.png" ]; then
+        log_info "Downloading NotebookLM icon..."
+        curl -sL "https://www.google.com/s2/favicons?domain=notebooklm.google.com&sz=128" \
+            -o "$icons_dir/notebooklm.png" || {
+            log_warn "Failed to download NotebookLM icon, using Chrome icon"
+        }
+    else
+        log_info "NotebookLM icon already exists"
+    fi
+
     log_info "✓ Icons ready"
 }
 
@@ -121,6 +132,16 @@ install_shortcuts() {
         log_error "gemini.desktop not found in apps/ folder"
         exit 1
     fi
+
+    # Copy NotebookLM shortcut
+    if [ -f "$script_dir/apps/notebooklm.desktop" ]; then
+        cp "$script_dir/apps/notebooklm.desktop" "$apps_dir/"
+        chmod +x "$apps_dir/notebooklm.desktop"
+        log_info "✓ NotebookLM shortcut installed"
+    else
+        log_error "notebooklm.desktop not found in apps/ folder"
+        exit 1
+    fi
 }
 
 # Update desktop database
@@ -150,6 +171,7 @@ show_summary() {
     echo "  ✓ ChatGPT - https://chatgpt.com"
     echo "  ✓ Claude  - https://claude.ai"
     echo "  ✓ Gemini  - https://gemini.google.com"
+    echo "  ✓ NotebookLM - https://notebooklm.google.com"
     echo ""
     echo "Features:"
     echo "  - Runs in Chrome app mode (no browser UI)"
@@ -163,8 +185,8 @@ show_summary() {
     echo "  - Click to launch"
     echo ""
     echo "To remove:"
-    echo "  rm ~/.local/share/applications/{chatgpt,claude,gemini}.desktop"
-    echo "  rm ~/.local/share/icons/{chatgpt,claude,gemini}.png"
+    echo "  rm ~/.local/share/applications/{chatgpt,claude,gemini,notebooklm}.desktop"
+    echo "  rm ~/.local/share/icons/{chatgpt,claude,gemini,notebooklm}.png"
     echo ""
 }
 
