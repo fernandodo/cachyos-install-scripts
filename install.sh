@@ -278,6 +278,18 @@ install_browsers() {
     fi
 }
 
+# Install Tailscale VPN
+install_tailscale() {
+    log_info "Installing Tailscale..."
+
+    sudo pacman -S --needed --noconfirm tailscale
+
+    sudo systemctl enable tailscaled.service
+    sudo systemctl start tailscaled.service
+
+    log_info "Tailscale installed and tailscaled service started"
+}
+
 # Install power management tools
 install_power_management() {
     log_info "Installing power management tools..."
@@ -515,6 +527,7 @@ post_install_info() {
     echo "  - IDEs (VSCode, Cursor AI, Obsidian)"
     echo "  - Office suite (LibreOffice)"
     echo "  - Browsers (Firefox, Google Chrome)"
+    echo "  - VPN (Tailscale)"
     echo "  - Cloud storage (Dropbox)"
     echo "  - PDF tools (Okular viewer, PDFsam Basic)"
     echo "  - Chinese fonts (Noto CJK, WenQuanYi, Adobe Source Han)"
@@ -539,6 +552,7 @@ post_install_info() {
     echo "Next steps:"
     echo "  - Configure git: git config --global user.name 'Your Name'"
     echo "  - Configure git: git config --global user.email 'your@email.com'"
+    echo "  - Connect Tailscale: sudo tailscale up"
     echo "  - LOG OUT and LOG BACK IN to enable Chinese input method"
     echo "  - Run 'fcitx5-configtool' to configure Chinese input after relogin"
     echo "  - Reboot recommended for optimal power management"
@@ -558,6 +572,7 @@ main() {
     install_ides
     install_chinese_fonts
     install_browsers
+    install_tailscale
     install_power_management
     install_aur_helper
     install_java_retry          # Retry Java after yay is installed
