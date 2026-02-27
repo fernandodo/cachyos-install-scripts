@@ -105,6 +105,22 @@ install_nodejs_npm() {
     log_info "Node.js installed via pacman: $(node -v), npm: $(npm -v)"
 }
 
+# Install notesmd-cli
+install_notesmd_cli() {
+    if command -v notesmd-cli &> /dev/null; then
+        log_info "notesmd-cli already installed"
+        return
+    fi
+
+    if command -v yay &> /dev/null; then
+        log_info "Installing notesmd-cli from AUR..."
+        yay -S --needed --noconfirm notesmd-cli-bin
+        log_info "notesmd-cli installed"
+    else
+        log_warn "yay not available yet, will install notesmd-cli after yay is ready"
+    fi
+}
+
 # Install GUI development libraries
 install_gui_libs() {
     log_info "Installing GUI development libraries..."
@@ -249,6 +265,9 @@ install_browsers() {
 
     # Firefox (official package)
     sudo pacman -S --needed --noconfirm firefox
+
+    # Telegram Desktop (official package)
+    sudo pacman -S --needed --noconfirm telegram-desktop
 
     # Google Chrome (from AUR via yay)
     if command -v yay &> /dev/null; then
@@ -487,6 +506,19 @@ install_pdfsam_retry() {
     fi
 }
 
+# Install notesmd-cli if not already installed
+install_notesmd_cli_retry() {
+    if ! command -v notesmd-cli &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            log_info "Installing notesmd-cli from AUR..."
+            yay -S --needed --noconfirm notesmd-cli-bin
+            log_info "notesmd-cli installed"
+        fi
+    else
+        log_info "notesmd-cli already installed"
+    fi
+}
+
 # Optional: Install ModemManager for mobile broadband support
 install_modemmanager_optional() {
     echo ""
@@ -526,7 +558,7 @@ post_install_info() {
     echo "  - Programming languages (Python, Node.js, C/C++)"
     echo "  - IDEs (VSCode, Cursor AI, Obsidian)"
     echo "  - Office suite (LibreOffice)"
-    echo "  - Browsers (Firefox, Google Chrome)"
+    echo "  - Browsers & chat apps (Firefox, Google Chrome, Telegram, WeChat)"
     echo "  - VPN (Tailscale)"
     echo "  - Cloud storage (Dropbox)"
     echo "  - PDF tools (Okular viewer, PDFsam Basic)"
@@ -568,6 +600,7 @@ main() {
     install_dev_tools
     install_languages
     install_nodejs_npm
+    install_notesmd_cli
     install_gui_libs
     install_ides
     install_chinese_fonts
@@ -584,6 +617,7 @@ main() {
     install_spotify_retry       # Retry Spotify after yay is installed
     install_eudic_retry         # Retry Eudic dictionary after yay is installed
     install_pdfsam_retry        # Retry PDFsam Basic after yay is installed
+    install_notesmd_cli_retry   # Retry notesmd-cli after yay is installed
     install_dropbox             # Install Dropbox
     install_aur_power_tools
     install_chinese_input       # Install after all other packages
