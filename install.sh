@@ -269,6 +269,9 @@ install_browsers() {
     # Telegram Desktop (official package)
     sudo pacman -S --needed --noconfirm telegram-desktop
 
+    # Strawberry music player (official package)
+    sudo pacman -S --needed --noconfirm strawberry
+
     # Google Chrome (from AUR via yay)
     if command -v yay &> /dev/null; then
         log_info "Installing Google Chrome from AUR..."
@@ -559,6 +562,7 @@ post_install_info() {
     echo "  - IDEs (VSCode, Cursor AI, Obsidian)"
     echo "  - Office suite (LibreOffice)"
     echo "  - Browsers & chat apps (Firefox, Google Chrome, Telegram, WeChat)"
+    echo "  - Music apps (Strawberry, Spotify)"
     echo "  - VPN (Tailscale)"
     echo "  - Cloud storage (Dropbox)"
     echo "  - PDF tools (Okular viewer, PDFsam Basic)"
