@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Microsoft 365 Copilot
+Comment=Microsoft 365 Copilot AI Assistant
+Exec=google-chrome-stable --app=https://m365.cloud.microsoft --disable-extensions
+Icon=microsoft-365-copilot
+Terminal=false
+Categories=Network;WebBrowser;X-AI;
+StartupNotify=true

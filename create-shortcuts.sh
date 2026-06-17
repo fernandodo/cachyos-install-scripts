@@ -91,6 +91,17 @@ download_icons() {
         log_info "NotebookLM icon already exists"
     fi
 
+    # Microsoft 365 Copilot icon
+    if ! [ -f "$icons_dir/microsoft-365-copilot.png" ]; then
+        log_info "Downloading Microsoft 365 Copilot icon..."
+        curl -sL "https://www.google.com/s2/favicons?domain=m365.cloud.microsoft&sz=128" \
+            -o "$icons_dir/microsoft-365-copilot.png" || {
+            log_warn "Failed to download Microsoft 365 Copilot icon, using Chrome icon"
+        }
+    else
+        log_info "Microsoft 365 Copilot icon already exists"
+    fi
+
     log_info "✓ Icons ready"
 }
 
@@ -142,6 +153,16 @@ install_shortcuts() {
         log_error "notebooklm.desktop not found in apps/ folder"
         exit 1
     fi
+
+    # Copy Microsoft 365 Copilot shortcut
+    if [ -f "$script_dir/apps/microsoft-365-copilot.desktop" ]; then
+        cp "$script_dir/apps/microsoft-365-copilot.desktop" "$apps_dir/"
+        chmod +x "$apps_dir/microsoft-365-copilot.desktop"
+        log_info "✓ Microsoft 365 Copilot shortcut installed"
+    else
+        log_error "microsoft-365-copilot.desktop not found in apps/ folder"
+        exit 1
+    fi
 }
 
 # Update desktop database
@@ -172,6 +193,7 @@ show_summary() {
     echo "  ✓ Claude  - https://claude.ai"
     echo "  ✓ Gemini  - https://gemini.google.com"
     echo "  ✓ NotebookLM - https://notebooklm.google.com"
+    echo "  ✓ Microsoft 365 Copilot - https://m365.cloud.microsoft"
     echo ""
     echo "Features:"
     echo "  - Runs in Chrome app mode (no browser UI)"
@@ -181,12 +203,12 @@ show_summary() {
     echo ""
     echo "How to use:"
     echo "  - Open your application menu"
-    echo "  - Search for 'ChatGPT' or 'Claude'"
+    echo "  - Search for 'ChatGPT', 'Claude', 'Gemini', 'NotebookLM', or 'Microsoft 365 Copilot'"
     echo "  - Click to launch"
     echo ""
     echo "To remove:"
-    echo "  rm ~/.local/share/applications/{chatgpt,claude,gemini,notebooklm}.desktop"
-    echo "  rm ~/.local/share/icons/{chatgpt,claude,gemini,notebooklm}.png"
+    echo "  rm ~/.local/share/applications/{chatgpt,claude,gemini,notebooklm,microsoft-365-copilot}.desktop"
+    echo "  rm ~/.local/share/icons/{chatgpt,claude,gemini,notebooklm,microsoft-365-copilot}.png"
     echo ""
 }
 
