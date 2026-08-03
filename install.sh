@@ -67,10 +67,40 @@ install_dev_tools() {
     log_info "Development base tools installed"
 }
 
+# Install embedded development/build dependencies
+install_embedded_build_deps() {
+    log_info "Installing embedded development build dependencies..."
+
+    # Arch's python package includes the development headers and venv module.
+    # gcc includes both the C and C++ frontends; lib32-gcc-libs adds 32-bit support.
+    # The file package includes libmagic, and sdl2-compat provides SDL2 headers/libs.
+    sudo pacman -S --needed --noconfirm \
+        git \
+        cmake \
+        ninja \
+        gperf \
+        ccache \
+        dfu-util \
+        dtc \
+        wget \
+        python \
+        tk \
+        xz \
+        file \
+        make \
+        gcc \
+        lib32-gcc-libs \
+        sdl2-compat
+
+    log_info "Embedded development build dependencies installed"
+}
+
 # Install programming languages and environments
 install_languages() {
     log_info "Installing programming languages and tools..."
 
+    # Freeplane requires java-runtime<=21; do not replace this with the moving
+    # jre-lts AUR package, which currently installs an incompatible newer Java.
     sudo pacman -S --needed --noconfirm \
         python \
         python-pip \
@@ -82,16 +112,8 @@ install_languages() {
         make \
         gdb \
         valgrind \
-        pkg-config
-
-    # Oracle Java Runtime (LTS) from AUR
-    if command -v yay &> /dev/null; then
-        log_info "Installing Oracle Java Runtime (LTS)..."
-        yay -S --needed --noconfirm jre-lts
-        log_info "Oracle Java Runtime installed"
-    else
-        log_warn "yay not available yet, will install Java after yay is ready"
-    fi
+        pkg-config \
+        jre21-openjdk
 
     log_info "Programming languages installed"
 }
@@ -470,19 +492,6 @@ install_spotify_retry() {
     fi
 }
 
-# Install Oracle Java Runtime if not already installed
-install_java_retry() {
-    if ! command -v java &> /dev/null; then
-        if command -v yay &> /dev/null; then
-            log_info "Installing Oracle Java Runtime (LTS) from AUR..."
-            yay -S --needed --noconfirm jre-lts
-            log_info "Oracle Java Runtime installed"
-        fi
-    else
-        log_info "Java already installed"
-    fi
-}
-
 # Install Eudic dictionary if not already installed
 install_eudic_retry() {
     if ! command -v eudic &> /dev/null; then
@@ -500,6 +509,12 @@ install_eudic_retry() {
 install_pdfsam_retry() {
     if ! command -v pdfsam &> /dev/null; then
         if command -v yay &> /dev/null; then
+            # PDFsam 6 requires both Java 25 and JavaFX 25. The standalone
+            # java-openjfx package no longer satisfies that pinned dependency,
+            # while this full Liberica JDK provides both versioned requirements.
+            log_info "Installing the Java 25/JavaFX runtime required by PDFsam..."
+            yay -S --needed --noconfirm liberica-jdk-25-full-bin
+
             log_info "Installing PDFsam Basic from AUR..."
             yay -S --needed --noconfirm pdfsam
             log_info "PDFsam Basic installed"
@@ -602,6 +617,7 @@ main() {
 
     update_system
     install_dev_tools
+    install_embedded_build_deps
     install_languages
     install_nodejs_npm
     install_notesmd_cli
@@ -612,7 +628,6 @@ main() {
     install_tailscale
     install_power_management
     install_aur_helper
-    install_java_retry          # Retry Java after yay is installed
     install_vscode_retry        # Retry VSCode after yay is installed
     install_cursor_retry        # Retry Cursor after yay is installed
     install_obsidian_retry      # Retry Obsidian after yay is installed
